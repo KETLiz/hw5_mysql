@@ -1,0 +1,33 @@
+-- 1. Создайте представление, в которое попадёт информация о пользователях 
+--    (имя, фамилия, город и пол), которые не старше 20 лет
+
+CREATE VIEW user_info1 AS
+SELECT U.firstname, U.lastname, P.hometown, P.gender, P.birthday
+FROM users AS U
+JOIN profiles AS P ON U.id = P.user_id
+WHERE TIMESTAMPDIFF(YEAR, birthday, curdate()) <= 20;
+
+SELECT * FROM user_info1;
+
+
+/* 2. Найдите количество отправленных сообщений каждым пользователем и выведите 
+ранжированный список пользователей, указав имя и фамилию пользователя, 
+количество отправленных сообщений и место в рейтинге (первое место у пользователя
+с максимальным количеством сообщений). (используйте DENSE_RANK) */
+
+SELECT U.id, U.firstname, U.lastname, COUNT(M.id),
+DENSE_RANK() OVER(ORDER BY COUNT(M.id) DESC) AS 'DENSE_RANK'
+FROM users AS U
+JOIN messages AS M ON U.id = M.from_user_id
+GROUP BY M.from_user_id;
+
+
+/* 3. Выберите все сообщения, отсортируйте сообщения по возрастанию даты отправления 
+(created_at) и найдите разницу дат отправления между соседними сообщениями,
+получившегося списка (используйте LEAD или LAG) */
+
+SELECT id, body, created_at,
+LEAD(created_at, 1) OVER(ORDER BY created_at) AS 'LEAD',
+EXTRACT(MINUTE FROM (LEAD(created_at, 1) OVER(ORDER BY created_at) - created_at)) AS delta
+FROM messages
+ORDER BY created_at;
